@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Core self-test (zero dependencies)
+        run: python selftest.py
+      - name: Install deps + unit tests
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest httpx
+          pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t guarded-llm-service .
+      - name: Smoke test the running container
+        run: |
+          docker run -d -p 8000:8000 --name svc guarded-llm-service
+          for i in $(seq 1 10); do
+            curl -fsS http://127.0.0.1:8000/health && break || sleep 2
+          done
+          curl -fsS http://127.0.0.1:8000/health
+          curl -fsS -X POST http://127.0.0.1:8000/evaluate \
+            -H 'content-type: application/json' \
+            --data @examples/request.json
+          docker rm -f svc

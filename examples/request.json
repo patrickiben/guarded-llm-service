@@ -1,0 +1,10 @@
+{
+  "text": "In the safety population (N=24), 18 participants (75.0%) experienced an adverse event. The study drug was well tolerated.",
+  "facts": [
+    {"name": "n_treated", "value": 24, "unit": "participants"},
+    {"name": "n_any_ae", "value": 19, "unit": "participants"},
+    {"name": "pct_any_ae", "value": 79.2, "unit": "%"}
+  ],
+  "banned_phrases": ["well tolerated"],
+  "required_names": ["pct_any_ae"]
+}
