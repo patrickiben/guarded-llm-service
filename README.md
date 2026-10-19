@@ -1,8 +1,8 @@
 # guarded-llm-service
 
-**A FastAPI microservice that serves the [`numguard`](https://github.com/YOUR-GITHUB/numguard) guardrail over HTTP — the "ship it beyond the notebook" piece: Docker, CI, health checks, and Prometheus-style metrics.**
+**A FastAPI microservice that serves the [`numguard`](https://github.com/patrickiben/numguard) guardrail over HTTP — the "ship it beyond the notebook" piece: Docker, CI, health checks, and Prometheus-style metrics.**
 
-![ci](https://github.com/YOUR-GITHUB/guarded-llm-service/actions/workflows/ci.yml/badge.svg)
+![ci](https://github.com/patrickiben/guarded-llm-service/actions/workflows/ci.yml/badge.svg)
 &nbsp;·&nbsp; FastAPI · Docker · Python ≥ 3.9 · MIT
 
 `POST` a generated draft plus its allowed facts and get a deterministic pass/fail grounding verdict: every number in the draft must be traceable to a fact, banned qualitative claims are caught, and required facts must be present. The guardrail itself (`app/guard.py`) and the metrics (`app/metrics.py`) are **pure standard library** — so they run and self-test with zero dependencies — and the FastAPI layer wraps them in a production-shaped service.
@@ -122,4 +122,4 @@ A **working proof-of-concept** that demonstrates production *shape* — containe
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Built by Patrick Iben (`p.iben@saeny.net`). Companion projects: [`numguard`](https://github.com/YOUR-GITHUB/numguard), [`grounded-rag`](https://github.com/YOUR-GITHUB/grounded-rag).
+MIT — see [LICENSE](LICENSE). Built by Patrick Iben (`p.iben@saeny.net`). Companion projects: [`numguard`](https://github.com/patrickiben/numguard), [`grounded-rag`](https://github.com/patrickiben/grounded-rag).
