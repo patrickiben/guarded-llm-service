@@ -4,26 +4,38 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
         with:
-          python-version: "3.11"
-      - name: Core self-test (zero dependencies)
+          python-version: ${{ matrix.python-version }}
+      - name: Self-test (zero dependencies)
         run: python selftest.py
-      - name: Install deps + unit tests
+      - name: Install development dependencies and run suite
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt pytest httpx
-          pytest -q
+          python -m pip install '.[dev]'
+          python -m pytest -q
+      - name: Build wheel and import outside the source checkout
+        run: |
+          python -m pip wheel --no-deps . -w dist
+          python -m venv .wheel-smoke
+          .wheel-smoke/bin/python -m pip install dist/*.whl
+          .wheel-smoke/bin/python -I -c "import app.main, app.guard, app.metrics"
 
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
       - name: Build image
         run: docker build -t guarded-llm-service .
       - name: Smoke test the running container

@@ -1,28 +1,18 @@
 """The guardrail core -- pure standard library (mirrors the numguard library).
 
-A draft may only restate numbers that exist in the provided facts; banned
-qualitative claims and missing required facts are flagged. Deterministic; runs
-no model.
+Recognized numeric values must match provided facts; listed phrases and
+missing required numeric values are flagged. This does not certify units or
+claim semantics. Deterministic; runs no model.
 """
 from __future__ import annotations
 
-import re
 from typing import Any, Dict, Iterable, List
 
-_NUM = re.compile(r"(?<![\w.])(\d+(?:,\d{3})*(?:\.\d+)?)")
+from ._numeric import extract_numbers as _extract_numbers, validate_fact_config, validate_tolerances
 
 
 def extract_numbers(text: str) -> List[tuple]:
-    """Return (value, raw_string) for each standalone number, keeping the raw
-    token so messages echo exactly what the draft wrote (e.g. '83.0')."""
-    out: List[tuple] = []
-    for m in _NUM.finditer(text):
-        raw = m.group(1)
-        try:
-            out.append((float(raw.replace(",", "")), raw))
-        except ValueError:  # pragma: no cover
-            continue
-    return out
+    return [(value, raw) for value, raw, _ in _extract_numbers(text)]
 
 
 def _fmt(x: float) -> str:
@@ -42,6 +32,18 @@ def evaluate_text(
     rel_tol: float = 0.001,
 ) -> Dict[str, Any]:
     """Evaluate a draft. ``facts`` is a list of {name, value, unit?} dicts."""
+    required_names = tuple(required_names)
+    validate_tolerances(abs_tol, rel_tol)
+    validate_fact_config(((f.get("name"), f.get("value")) for f in facts), required_names)
+    try:
+        return _evaluate_text(text, facts, banned_phrases, required_names, abs_tol, rel_tol)
+    except ValueError as error:
+        return {"passed": False, "n_errors": 1, "findings": [{
+            "check": "numeric_format", "severity": "ERROR", "message": str(error),
+        }]}
+
+
+def _evaluate_text(text, facts, banned_phrases, required_names, abs_tol, rel_tol):
     values = [f["value"] for f in facts if f.get("value") is not None]
     findings: List[Dict[str, str]] = []
 
@@ -67,7 +69,7 @@ def evaluate_text(
     for name in required_names:
         fact = by_name.get(name)
         if not fact or fact.get("value") is None:
-            continue
+            raise ValueError(f"Invalid required fact: {name!r}")
         v = fact["value"]
         if not any(abs(n - v) <= _tol(v, abs_tol, rel_tol) for n in nums):
             unit = f" {fact['unit']}" if fact.get("unit") else ""

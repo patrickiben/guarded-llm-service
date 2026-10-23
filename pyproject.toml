@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "guarded-llm-service"
 version = "0.1.0"
-description = "A FastAPI service that serves the numguard guardrail: every number in a draft must be traceable to a fact."
+description = "FastAPI service for deterministic numeric-membership checks, request validation and metrics."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}

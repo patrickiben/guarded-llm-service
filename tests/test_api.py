@@ -56,3 +56,26 @@ def test_metrics_exposition():
 def test_response_time_header():
     r = client.get("/health")
     assert "X-Response-Time-ms" in r.headers
+
+
+@pytest.mark.parametrize("updates", [
+    {"required_names": ["mortailty"]},
+    {"facts": [{"name": "n", "value": 1}, {"name": "n", "value": 2}]},
+    {"facts": [{"name": "", "value": 1}]},
+    {"facts": [{"name": "n", "value": "inf"}]},
+    {"facts": [{"name": "n", "value": True}]},
+    {"facts": [{"name": "mortality", "value": None}], "required_names": ["mortality"]},
+    {"abs_tol": "inf"}, {"abs_tol": -1}, {"rel_tol": "nan"}, {"rel_tol": True},
+])
+def test_invalid_fact_contract_returns_422(updates):
+    payload = {"text": "There were 99999 participants.", "facts": [{"name": "mortality", "value": 0}]}
+    payload.update(updates)
+    response = client.post("/evaluate", json=payload)
+    assert response.status_code == 422, response.text
+
+
+def test_malformed_draft_is_a_gate_failure_not_an_http_error():
+    response = client.post("/evaluate", json={"text": "Count 1e999.", "facts": []})
+    assert response.status_code == 200
+    assert response.json()["passed"] is False
+    assert response.json()["findings"][0]["check"] == "numeric_format"

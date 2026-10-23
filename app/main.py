@@ -13,8 +13,8 @@ from .schemas import EvaluateRequest, EvaluateResponse
 app = FastAPI(
     title="guarded-llm-service",
     version="0.1.0",
-    description="Serves the numguard guardrail: every number in a draft must be "
-                "traceable to a fact; banned claims and missing facts are flagged.",
+    description="Serves numguard numeric-membership checks: recognized values must be "
+                "allowed facts; listed phrases and missing required values are flagged.",
 )
 metrics = Metrics()
 

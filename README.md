@@ -5,7 +5,11 @@
 ![ci](https://github.com/patrickiben/guarded-llm-service/actions/workflows/ci.yml/badge.svg)
 &nbsp;·&nbsp; FastAPI · Docker · Python ≥ 3.9 · MIT
 
-`POST` a generated draft plus its allowed facts and get a deterministic pass/fail grounding verdict: every number in the draft must be traceable to a fact, banned qualitative claims are caught, and required facts must be present. The guardrail itself (`app/guard.py`) and the metrics (`app/metrics.py`) are **pure standard library** — so they run and self-test with zero dependencies — and the FastAPI layer wraps them in a production-shaped service.
+`POST` a generated draft plus its allowed facts and get a deterministic pass/fail grounding verdict: recognized numeric values must match an allowed fact, listed banned phrases are caught, and required numeric fact values must be present. The guardrail itself (`app/guard.py`) and the metrics (`app/metrics.py`) are **pure standard library** — so they run and self-test with zero dependencies — and the FastAPI layer wraps them in a production-shaped service.
+
+**Scope:** this checks numeric value membership, not units, sentence meaning, upstream truth or completeness. Spelled-out numbers and letter-led identifiers are outside its numeric grammar. A passing response requires human review. See the shared [numeric contract](NUMERIC_CONTRACT.md).
+
+Invalid requests (duplicate/empty fact names, unknown/nonnumeric required facts, non-finite values, or negative/non-finite tolerances) return **422**. Malformed numeric tokens in a draft return **200** with `passed=false` and a `numeric_format` finding. The dependency-free Python core raises `ValueError` for invalid configuration.
 
 ---
 
@@ -100,10 +104,10 @@ The design deliberately keeps the **business logic dependency-free** so it has a
 ## Tests & CI
 
 ```bash
-pytest -q        # 10 passed (5 core, 5 API)
+python -m pytest -q  # core, API, numeric-contract and configuration regressions
 ```
 
-GitHub Actions runs three things on every push: the zero-dependency core self-test, the full pytest suite (with deps), and a **Docker build + live container smoke test** (`docker run` → `curl /health` and `/evaluate`). So "it builds and serves" is proven by CI, not just claimed.
+GitHub Actions checks Python 3.9, 3.12 and 3.14, including an isolated wheel/core import. It also runs the zero-dependency core self-test, the full pytest suite (with deps), and a **Docker build + live container smoke test** (`docker run` → `curl /health` and `/evaluate`). So "it builds and serves" is proven by CI, not just claimed.
 
 ## Deploy
 
@@ -112,7 +116,7 @@ The image runs on any container host — Fly.io, Render, Google Cloud Run, AWS A
 ## Roadmap
 
 - [ ] Pluggable **model backend** (route a real local/cloud LLM to *generate*, then guard its output)
-- [ ] Shared guard core imported from the `numguard` package (instead of vendored)
+- [x] Byte-identical vendored numeric core with contract/digest checks; see [synchronization](NUMERIC_CONTRACT.md#synchronizing-copies)
 - [ ] Structured request logging + trace IDs
 - [ ] Rate limiting and API-key auth for a public deployment
 

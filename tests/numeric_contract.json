@@ -1,0 +1,47 @@
+{
+  "source_sha256": "7bd01a5a4a6ddaba714a99c4725394860c8472634bec0bae8d2b40d824c01ea9",
+  "valid": [
+    {
+      "text": "Change -2.3 mg; rate .5%; count 1e9.",
+      "values": [
+        -2.3,
+        0.5,
+        1000000000.0
+      ]
+    },
+    {
+      "text": "Values +.5, −2.3e-4 and 1,200.5.",
+      "values": [
+        0.5,
+        -0.00023,
+        1200.5
+      ]
+    },
+    {
+      "text": "CP101 CP-101 grade3 and １９ participants.",
+      "values": [
+        19
+      ]
+    },
+    {
+      "text": "Dose levels 10, 30, and 100 mg.",
+      "values": [
+        10,
+        30,
+        100
+      ]
+    }
+  ],
+  "invalid": [
+    "79,2 percent",
+    "1,23 participants",
+    "1e participants",
+    "1e+ participants",
+    "1e999 participants",
+    "1.2.3",
+    "1-4 participants",
+    "１．５ participants",
+    "1.2,3",
+    "--2.3"
+  ]
+}
